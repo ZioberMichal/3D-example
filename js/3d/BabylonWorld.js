@@ -21,6 +21,7 @@ class BabylonWorld {
         this.light = this.createLight();
         this.ground = this.createGround();
 
+        this.deleteFeature = new DeleteFeature(this.scene, this.ground);
         this.moveableFeature = new MoveableFeature(this.scene, this.camera, this.ground);
         this.shapeFactory = new ShapeFactory(this.scene);
 
