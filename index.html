@@ -26,7 +26,11 @@
     <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
 
     <!-- Local -->
+    <script src="js/3d/ShapeFactory.js"></script>
+    <script src="js/3d/AttachedCamera.js"></script>
     <script src="js/features/MoveableFeature.js"></script>
+    <script src="js/3d/BabylonWorld.js"></script>
+    <script src="js/UI.js"></script>
 
     <!-- Bootstrap core CSS -->
   <link href="bootstrap.min.css" rel="stylesheet">
@@ -137,103 +141,7 @@
 </div>
 
 <script>
-
-  const canvas = document.getElementById("renderCanvas");
-
-  var engine = null;
-  var scene = null;
-  var ground = null;
-  var sceneToRender = null;
-  var moveableFeature = null;
-  var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
-  const createScene = () => {
-      const scene = new BABYLON.Scene(engine);
-
-      var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene);
-      camera.setPosition(new BABYLON.Vector3(20, 200, 400));
-      camera.attachControl(canvas, true);
-      camera.upperBetaLimit = (Math.PI / 2) * 0.99;
-
-      var light = new BABYLON.PointLight("light", new BABYLON.Vector3(50, 200, 0), scene);
-
-      var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
-      groundMaterial.specularColor = BABYLON.Color3.Black();
-
-      ground = BABYLON.MeshBuilder.CreateGround("ground", {width:1000, height:1000}, scene, false);
-      ground.material = groundMaterial;
-
-      moveableFeature = new MoveableFeature(scene, camera, ground, canvas);
-
-      return scene;
-  };;
-  window.initFunction = async function() {            
-      var asyncEngineCreation = async function() {
-          try {
-            return createDefaultEngine();
-          } catch(e) {
-            console.log("the available createEngine function failed. Creating the default engine instead");
-            return createDefaultEngine();
-          }
-      }
-
-      window.engine = await asyncEngineCreation();
-      if (!engine) throw 'engine should not be null.';
-      window.scene = createScene();
-  };
-  initFunction().then(() => {
-      sceneToRender = scene        
-      engine.runRenderLoop(function () {
-          if (sceneToRender && sceneToRender.activeCamera) {
-              sceneToRender.render();
-          }
-      });
-      scene.onPointerObservable.add((pointerInfo) => {      		
-        switch (pointerInfo.type) {
-			    case BABYLON.PointerEventTypes.POINTERDOWN:
-				    if(pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh != ground) {
-              moveableFeature.pointerDown(pointerInfo.pickInfo.pickedMesh)
-            }
-				  break;
-			    case BABYLON.PointerEventTypes.POINTERUP:
-            moveableFeature.pointerUp();
-				  break;
-			    case BABYLON.PointerEventTypes.POINTERMOVE:          
-            moveableFeature.pointerMove();
-				  break;
-        }
-    });
-  });
-
-  // Resize
-  window.addEventListener("resize", function () {
-      engine.resize();
-  });
-
-  document.getElementById("addBox").onclick = function() {
-    var getAsInt = function(input) {
-      return parseInt(document.getElementById(input).value);
-    };
-    const color = hexToRgb(document.getElementById("colorpicker").value);
-    const material = new BABYLON.StandardMaterial("ground", scene);
-    material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    material.emissiveColor = new BABYLON.Color3(color.r, color.g, color.b);
-
-    const box = BABYLON.MeshBuilder.CreateBox("box", {height: getAsInt("size.Y"), width: getAsInt("size.X"), depth: getAsInt("size.Z")});
-    box.position = new BABYLON.Vector3(getAsInt("location.X"), getAsInt("location.Y"), getAsInt("location.Z"));
-    box.material = material;
-  };
-
-  function hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16) / 255.0,
-      g: parseInt(result[2], 16) / 255.0,
-      b: parseInt(result[3], 16) / 255.0
-    } : null;
-  }
-
-
-  </script>
-  </body>
+  new UI("renderCanvas").run();
+</script>
+</body>
 </html>

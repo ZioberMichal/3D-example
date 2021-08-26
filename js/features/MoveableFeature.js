@@ -1,9 +1,8 @@
 class MoveableFeature {
-    constructor(scene, camera, ground, canvas) {
+    constructor(scene, camera, ground) {
       this.scene = scene;
       this.camera = camera;
       this.ground = ground;
-      this.canvas = canvas;
       this.startingPoint = null;
       this.currentMesh = null;
     }
@@ -21,13 +20,13 @@ class MoveableFeature {
       this.currentMesh = mesh;
       this.startingPoint = this.getGroundPosition();
       if (this.startingPoint) {
-        setTimeout(() => this.camera.detachControl(this.canvas), 0);
+        this.camera.detach();
       }
     }
   
     pointerUp() {
       if (this.startingPoint) {
-        this.camera.attachControl(this.canvas, true);
+        this.camera.attach();
         this.startingPoint = null;
       }
     }
