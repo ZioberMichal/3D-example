@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.87.0">
+    <title>Dashboard 3D</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/dashboard/">
+
+    <!-- Babylon.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+    <script src="https://preview.babylonjs.com/ammo.js"></script>
+    <script src="https://preview.babylonjs.com/cannon.js"></script>
+    <script src="https://preview.babylonjs.com/Oimo.js"></script>
+    <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+    <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+    <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+    <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+    <!-- Local -->
+    <script src="js/features/MoveableFeature.js"></script>
+
+    <!-- Bootstrap core CSS -->
+  <link href="bootstrap.min.css" rel="stylesheet">
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      .slider {
+        width: 100px;
+      }
+
+      .number_input {
+        width: 60px;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    
+    <!-- Custom styles for this template -->
+    <link href="dashboard.css" rel="stylesheet">
+  </head>
+  <body>
+    
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">3D</a>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+  <div class="navbar-nav">
+    <div class="nav-item text-nowrap">
+      <a class="nav-link px-3" href="#"></a>
+    </div>
+  </div>
+</header>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+      <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">
+              <span data-feather="home"></span>
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="file"></span>
+              Shapes
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="me-1">
+            <div class="row">
+              <div class="col-sm">
+                <input type="range" min="1" max="100" value="25" class="slider" id="size.X">
+              </div>
+              <div class="col-sm">
+                <input type="range" min="1" max="100" value="25" class="slider" id="size.Y">
+              </div>
+              <div class="col-sm">
+                <input type="range" min="1" max="100" value="25" class="slider" id="size.Z">
+              </div>
+              <div class="col-sm">
+                <input type="number" value="0" class="number_input" id="location.X">
+              </div>
+              <div class="col-sm">
+                <input type="number" value="0" class="number_input" id="location.Y">
+              </div>
+              <div class="col-sm">
+                <input type="number" value="-50" class="number_input" id="location.Z">
+              </div>
+              <div class="col-sm">
+                <input type="color" id="colorpicker" onchange="clickColor(0, -1, -1, 5)" value="#ff0000" style="width:30px%;">
+              </div>
+            </div>
+          </div>
+          <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="addBox">Add box</button>
+          </div>
+        </div>
+      </div>
+
+      <canvas class="my-4 w-100" id="renderCanvas" width="900" height="380"></canvas>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+
+  const canvas = document.getElementById("renderCanvas");
+
+  var engine = null;
+  var scene = null;
+  var ground = null;
+  var sceneToRender = null;
+  var moveableFeature = null;
+  var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+  const createScene = () => {
+      const scene = new BABYLON.Scene(engine);
+
+      var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene);
+      camera.setPosition(new BABYLON.Vector3(20, 200, 400));
+      camera.attachControl(canvas, true);
+      camera.upperBetaLimit = (Math.PI / 2) * 0.99;
+
+      var light = new BABYLON.PointLight("light", new BABYLON.Vector3(50, 200, 0), scene);
+
+      var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
+      groundMaterial.specularColor = BABYLON.Color3.Black();
+
+      ground = BABYLON.MeshBuilder.CreateGround("ground", {width:1000, height:1000}, scene, false);
+      ground.material = groundMaterial;
+
+      moveableFeature = new MoveableFeature(scene, camera, ground, canvas);
+
+      return scene;
+  };;
+  window.initFunction = async function() {            
+      var asyncEngineCreation = async function() {
+          try {
+            return createDefaultEngine();
+          } catch(e) {
+            console.log("the available createEngine function failed. Creating the default engine instead");
+            return createDefaultEngine();
+          }
+      }
+
+      window.engine = await asyncEngineCreation();
+      if (!engine) throw 'engine should not be null.';
+      window.scene = createScene();
+  };
+  initFunction().then(() => {
+      sceneToRender = scene        
+      engine.runRenderLoop(function () {
+          if (sceneToRender && sceneToRender.activeCamera) {
+              sceneToRender.render();
+          }
+      });
+      scene.onPointerObservable.add((pointerInfo) => {      		
+        switch (pointerInfo.type) {
+			    case BABYLON.PointerEventTypes.POINTERDOWN:
+				    if(pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh != ground) {
+              moveableFeature.pointerDown(pointerInfo.pickInfo.pickedMesh)
+            }
+				  break;
+			    case BABYLON.PointerEventTypes.POINTERUP:
+            moveableFeature.pointerUp();
+				  break;
+			    case BABYLON.PointerEventTypes.POINTERMOVE:          
+            moveableFeature.pointerMove();
+				  break;
+        }
+    });
+  });
+
+  // Resize
+  window.addEventListener("resize", function () {
+      engine.resize();
+  });
+
+  document.getElementById("addBox").onclick = function() {
+    var getAsInt = function(input) {
+      return parseInt(document.getElementById(input).value);
+    };
+    const color = hexToRgb(document.getElementById("colorpicker").value);
+    const material = new BABYLON.StandardMaterial("ground", scene);
+    material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    material.emissiveColor = new BABYLON.Color3(color.r, color.g, color.b);
+
+    const box = BABYLON.MeshBuilder.CreateBox("box", {height: getAsInt("size.Y"), width: getAsInt("size.X"), depth: getAsInt("size.Z")});
+    box.position = new BABYLON.Vector3(getAsInt("location.X"), getAsInt("location.Y"), getAsInt("location.Z"));
+    box.material = material;
+  };
+
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16) / 255.0,
+      g: parseInt(result[2], 16) / 255.0,
+      b: parseInt(result[3], 16) / 255.0
+    } : null;
+  }
+
+
+  </script>
+  </body>
+</html>
