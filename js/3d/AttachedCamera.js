@@ -3,8 +3,8 @@
 */
 class AttachedCamera {
     constructor(scene, canvas) {
-        this.canvas = canvas;
         this.scene = scene;
+        this.canvas = canvas;
         this.position = new BABYLON.Vector3(20, 200, 400);
         this.camera = this.createNewCamera();
         this.attach();
