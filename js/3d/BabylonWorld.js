@@ -49,24 +49,6 @@ class BabylonWorld {
         });
     }
 
-    addMouseListener() {
-        this.scene.onPointerObservable.add((pointerInfo) => {
-            switch (pointerInfo.type) {
-                case BABYLON.PointerEventTypes.POINTERDOWN:
-                    if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh != this.ground) {
-                        this.moveableFeature.pointerDown(pointerInfo.pickInfo.pickedMesh)
-                    }
-                    break;
-                case BABYLON.PointerEventTypes.POINTERUP:
-                    this.moveableFeature.pointerUp();
-                    break;
-                case BABYLON.PointerEventTypes.POINTERMOVE:
-                    this.moveableFeature.pointerMove();
-                    break;
-            }
-        });
-    }
-
     resize() {
         this.engine.resize();
     }

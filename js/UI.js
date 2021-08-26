@@ -26,7 +26,6 @@ class UI {
         };
         initFunction().then(() => {
             babylon.render();
-            babylon.addMouseListener();
             window.shapeFactory = new ShapeFactory(babylon.scene);
         });
     }
